@@ -93,14 +93,18 @@ export interface HexEvent {
   isArchived: boolean;
 }
 
-export interface EventListItem extends HexEvent {
+/** A market with its nested outcomes. */
+export interface MarketDetail extends Market {
   outcomes: Outcome[];
+}
+
+export interface EventListItem extends HexEvent {
+  markets: MarketDetail[];
   tags: Tag[];
 }
 
 export interface EventDetail extends HexEvent {
-  outcomes: Outcome[];
-  markets: Market[];
+  markets: MarketDetail[];
   tags: Tag[];
 }
 
