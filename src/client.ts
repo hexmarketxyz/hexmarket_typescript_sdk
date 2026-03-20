@@ -2,7 +2,7 @@ import { MarketsApi } from './api/markets';
 import { OrdersApi } from './api/orders';
 import { TradesApi } from './api/trades';
 import { VaultApi } from './api/vault';
-import { HexWebSocket } from './ws/client';
+import { HexMarketWebSocket, HexUserWebSocket } from './ws/client';
 
 export interface HexMarketClientConfig {
   apiUrl: string;
@@ -16,14 +16,16 @@ export class HexMarketClient {
   public readonly orders: OrdersApi;
   public readonly trades: TradesApi;
   public readonly vault: VaultApi;
-  public readonly ws: HexWebSocket;
+  public readonly marketWs: HexMarketWebSocket;
+  public readonly userWs: HexUserWebSocket;
 
   constructor(config: HexMarketClientConfig) {
     this.markets = new MarketsApi(config.apiUrl);
     this.orders = new OrdersApi(config.apiUrl);
     this.trades = new TradesApi(config.apiUrl);
     this.vault = new VaultApi(config.apiUrl);
-    this.ws = new HexWebSocket(config.wsUrl);
+    this.marketWs = new HexMarketWebSocket(`${config.wsUrl}/ws/market`);
+    this.userWs = new HexUserWebSocket(`${config.wsUrl}/ws/user`);
   }
 
   setL2Headers(headers: Record<string, string> | null): void {
