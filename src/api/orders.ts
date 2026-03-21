@@ -50,6 +50,24 @@ export class OrdersApi {
     if (!res.ok) throw new Error(`Failed to cancel order: ${res.statusText}`);
   }
 
+  /** Cancel all open orders, optionally filtered by market or event. */
+  async cancelAll(opts?: { marketId?: string; eventId?: string }): Promise<{ cancelled_count: number }> {
+    const query = new URLSearchParams();
+    if (opts?.marketId) query.set('market_id', opts.marketId);
+    if (opts?.eventId) query.set('event_id', opts.eventId);
+    const qs = query.toString();
+    const url = `${this.baseUrl}/api/v1/orders${qs ? `?${qs}` : ''}`;
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: this.headers(true),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to cancel all orders: ${text}`);
+    }
+    return res.json() as Promise<{ cancelled_count: number }>;
+  }
+
   async getOpen(userPubkey: string, outcomeId?: string): Promise<Order[]> {
     const query = new URLSearchParams({ user: userPubkey });
     if (outcomeId) query.set('outcome_id', outcomeId);
