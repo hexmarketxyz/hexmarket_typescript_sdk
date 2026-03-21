@@ -141,7 +141,7 @@ export async function signL2(secretB64: string, payload: string): Promise<string
   const secretBytes = base64urlDecode(secretB64);
   const key = await crypto.subtle.importKey(
     'raw',
-    secretBytes,
+    secretBytes.buffer as ArrayBuffer,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],
