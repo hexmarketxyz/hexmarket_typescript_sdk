@@ -68,6 +68,53 @@ export class OrdersApi {
     return res.json() as Promise<{ cancelled_count: number }>;
   }
 
+  /** Place multiple orders in a single batch. All orders must belong to the same market. */
+  async batchPlace(marketId: string, orders: PlaceOrderParams[]): Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }> {
+    const body = {
+      market_id: marketId,
+      orders: orders.map(p => ({
+        outcome_id: p.outcomeId,
+        side: p.side,
+        order_type: p.orderType,
+        time_in_force: p.timeInForce,
+        price: p.price,
+        quantity: p.quantity,
+        nonce: p.nonce,
+        signature: p.signature,
+      })),
+    };
+
+    const res = await fetch(`${this.baseUrl}/api/v1/orders/batch`, {
+      method: 'POST',
+      headers: this.headers(true),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to batch place orders: ${text}`);
+    }
+    return res.json() as Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }>;
+  }
+
+  /** Cancel multiple orders in a single batch. All orders must belong to the same market. */
+  async batchCancel(marketId: string, orderIds: string[]): Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }> {
+    const body = {
+      market_id: marketId,
+      order_ids: orderIds,
+    };
+
+    const res = await fetch(`${this.baseUrl}/api/v1/orders/batch`, {
+      method: 'DELETE',
+      headers: this.headers(true),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to batch cancel orders: ${text}`);
+    }
+    return res.json() as Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }>;
+  }
+
   async getOpen(userPubkey: string, outcomeId?: string): Promise<Order[]> {
     const query = new URLSearchParams({ user: userPubkey });
     if (outcomeId) query.set('outcome_id', outcomeId);
