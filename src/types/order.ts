@@ -19,6 +19,7 @@ export interface Order {
   signature: string;
   createdAt: string;
   updatedAt: string;
+  clientOrderId?: string;
 }
 
 export interface PlaceOrderParams {
@@ -30,9 +31,11 @@ export interface PlaceOrderParams {
   quantity: number;
   nonce: number;
   signature: string;
+  clientOrderId?: string;
 }
 
 export interface PlaceOrderResponse {
   orderId: string;
   status: 'accepted';
+  clientOrderId?: string;
 }

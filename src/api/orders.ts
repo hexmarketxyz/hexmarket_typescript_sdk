@@ -19,7 +19,7 @@ export class OrdersApi {
 
   async place(params: PlaceOrderParams): Promise<PlaceOrderResponse> {
     // Map camelCase TS fields to snake_case for the Rust API
-    const body = {
+    const body: Record<string, unknown> = {
       outcome_id: params.outcomeId,
       side: params.side,
       order_type: params.orderType,
@@ -29,6 +29,9 @@ export class OrdersApi {
       nonce: params.nonce,
       signature: params.signature,
     };
+    if (params.clientOrderId) {
+      body.client_order_id = params.clientOrderId;
+    }
 
     const res = await fetch(`${this.baseUrl}/api/v1/orders`, {
       method: 'POST',
@@ -48,6 +51,31 @@ export class OrdersApi {
       headers: this.headers(true),
     });
     if (!res.ok) throw new Error(`Failed to cancel order: ${res.statusText}`);
+  }
+
+  /** Get an order by client_order_id. */
+  async getByClientId(clientOrderId: string): Promise<Order> {
+    const res = await fetch(`${this.baseUrl}/api/v1/orders/client/${clientOrderId}`, {
+      headers: this.headers(true),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to get order by client_order_id: ${text}`);
+    }
+    return res.json() as Promise<Order>;
+  }
+
+  /** Cancel an order by client_order_id. */
+  async cancelByClientId(clientOrderId: string): Promise<{ order_id: string; client_order_id: string; status: string }> {
+    const res = await fetch(`${this.baseUrl}/api/v1/orders/client/${clientOrderId}`, {
+      method: 'DELETE',
+      headers: this.headers(true),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to cancel order by client_order_id: ${text}`);
+    }
+    return res.json() as Promise<{ order_id: string; client_order_id: string; status: string }>;
   }
 
   /** Cancel all open orders, optionally filtered by market or event. */
@@ -72,16 +100,20 @@ export class OrdersApi {
   async batchPlace(marketId: string, orders: PlaceOrderParams[]): Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }> {
     const body = {
       market_id: marketId,
-      orders: orders.map(p => ({
-        outcome_id: p.outcomeId,
-        side: p.side,
-        order_type: p.orderType,
-        time_in_force: p.timeInForce,
-        price: p.price,
-        quantity: p.quantity,
-        nonce: p.nonce,
-        signature: p.signature,
-      })),
+      orders: orders.map(p => {
+        const o: Record<string, unknown> = {
+          outcome_id: p.outcomeId,
+          side: p.side,
+          order_type: p.orderType,
+          time_in_force: p.timeInForce,
+          price: p.price,
+          quantity: p.quantity,
+          nonce: p.nonce,
+          signature: p.signature,
+        };
+        if (p.clientOrderId) o.client_order_id = p.clientOrderId;
+        return o;
+      }),
     };
 
     const res = await fetch(`${this.baseUrl}/api/v1/orders/batch`, {
@@ -96,12 +128,16 @@ export class OrdersApi {
     return res.json() as Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }>;
   }
 
-  /** Cancel multiple orders in a single batch. All orders must belong to the same market. */
-  async batchCancel(marketId: string, orderIds: string[]): Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }> {
-    const body = {
+  /** Cancel multiple orders in a single batch. All orders must belong to the same market.
+   *  Supports cancellation by order_ids and/or client_order_ids. */
+  async batchCancel(marketId: string, orderIds: string[], clientOrderIds?: string[]): Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }> {
+    const body: Record<string, unknown> = {
       market_id: marketId,
       order_ids: orderIds,
     };
+    if (clientOrderIds?.length) {
+      body.client_order_ids = clientOrderIds;
+    }
 
     const res = await fetch(`${this.baseUrl}/api/v1/orders/batch`, {
       method: 'DELETE',
