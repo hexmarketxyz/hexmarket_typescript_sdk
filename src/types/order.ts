@@ -32,6 +32,8 @@ export interface PlaceOrderParams {
   nonce: number;
   signature: string;
   clientOrderId?: string;
+  /** Session key public key. When present, signature is verified against the session key. */
+  sessionPubkey?: string;
 }
 
 export interface PlaceOrderResponse {

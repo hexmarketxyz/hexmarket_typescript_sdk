@@ -72,6 +72,42 @@ export function parseAuthTokenTimestamp(token: string): number | null {
 }
 
 // ---------------------------------------------------------------------------
+// Session Key Delegation
+// ---------------------------------------------------------------------------
+
+const DELEGATION_MESSAGE_PREFIX = 'hexmarket:delegate_session\n';
+
+/**
+ * Build the delegation message that the wallet signs to authorize a session key.
+ * Format: `hexmarket:delegate_session\nsession_key:{sessionPubkey}\nexpires:{expiresAt}`
+ */
+export function buildDelegationMessage(sessionPubkey: string, expiresAt: number): Uint8Array {
+  return new TextEncoder().encode(
+    `${DELEGATION_MESSAGE_PREFIX}session_key:${sessionPubkey}\nexpires:${expiresAt}`,
+  );
+}
+
+/**
+ * Build a session-key-signed auth token.
+ * Format: `{userPubkey}.{timestamp}.{signature}.{sessionPubkey}`
+ *
+ * @param userPubkey - The user's wallet public key (base58)
+ * @param sessionPubkey - The session key's public key (base58)
+ * @param signMessage - Session key's signMessage (signs with session private key)
+ */
+export async function buildSessionAuthToken(
+  userPubkey: string,
+  sessionPubkey: string,
+  signMessage: (message: Uint8Array) => Promise<Uint8Array>,
+): Promise<string> {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const message = buildAuthMessage(timestamp);
+  const signatureBytes = await signMessage(message);
+  const signatureB58 = bs58.encode(signatureBytes);
+  return `${userPubkey}.${timestamp}.${signatureB58}.${sessionPubkey}`;
+}
+
+// ---------------------------------------------------------------------------
 // L2 API Key Authentication
 // ---------------------------------------------------------------------------
 

@@ -10,5 +10,6 @@ export * from './types/trade';
 export {
   buildOrderMessage, generateNonce, buildAuthMessage, buildAuthToken, parseAuthTokenTimestamp,
   buildApiKeyMessage, buildL2Headers, buildL2SigningPayload, signL2,
+  buildDelegationMessage, buildSessionAuthToken,
   type ApiCredentials,
 } from './signing';

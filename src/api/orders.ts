@@ -40,6 +40,9 @@ export class OrdersApi {
     if (params.clientOrderId) {
       body.client_order_id = params.clientOrderId;
     }
+    if (params.sessionPubkey) {
+      body.session_pubkey = params.sessionPubkey;
+    }
 
     const res = await fetch(`${this.baseUrl}/api/v1/orders`, {
       method: 'POST',
@@ -124,6 +127,7 @@ export class OrdersApi {
           signature: p.signature,
         };
         if (p.clientOrderId) o.client_order_id = p.clientOrderId;
+        if (p.sessionPubkey) o.session_pubkey = p.sessionPubkey;
         return o;
       }),
     };
