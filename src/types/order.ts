@@ -39,3 +39,30 @@ export interface PlaceOrderResponse {
   status: 'accepted';
   clientOrderId?: string;
 }
+
+export interface CancelOrderResponse {
+  order_id: string;
+  client_order_id?: string;
+  status: 'cancelled';
+}
+
+export interface CancelAllOrdersResponse {
+  cancelled_count: number;
+  status: 'cancelled';
+  orders: Array<{ order_id: string; client_order_id?: string }>;
+}
+
+export interface BatchPlaceResult {
+  index: number;
+  order_id?: string;
+  client_order_id?: string;
+  status: 'accepted' | 'rejected';
+  error?: string;
+}
+
+export interface BatchCancelResult {
+  order_id: string;
+  client_order_id?: string;
+  status: 'cancelled' | 'failed';
+  error?: string;
+}

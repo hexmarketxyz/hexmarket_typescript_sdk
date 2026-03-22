@@ -1,4 +1,12 @@
-import { Order, PlaceOrderParams, PlaceOrderResponse } from '../types/order';
+import {
+  Order,
+  PlaceOrderParams,
+  PlaceOrderResponse,
+  CancelOrderResponse,
+  CancelAllOrdersResponse,
+  BatchPlaceResult,
+  BatchCancelResult,
+} from '../types/order';
 
 export class OrdersApi {
   private l2Headers: Record<string, string> | null = null;
@@ -45,12 +53,16 @@ export class OrdersApi {
     return res.json() as Promise<PlaceOrderResponse>;
   }
 
-  async cancel(orderId: string): Promise<void> {
+  async cancel(orderId: string): Promise<CancelOrderResponse> {
     const res = await fetch(`${this.baseUrl}/api/v1/orders/${orderId}`, {
       method: 'DELETE',
       headers: this.headers(true),
     });
-    if (!res.ok) throw new Error(`Failed to cancel order: ${res.statusText}`);
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to cancel order: ${text}`);
+    }
+    return res.json() as Promise<CancelOrderResponse>;
   }
 
   /** Get an order by client_order_id. */
@@ -79,7 +91,7 @@ export class OrdersApi {
   }
 
   /** Cancel all open orders, optionally filtered by market or event. */
-  async cancelAll(opts?: { marketId?: string; eventId?: string }): Promise<{ cancelled_count: number }> {
+  async cancelAll(opts?: { marketId?: string; eventId?: string }): Promise<CancelAllOrdersResponse> {
     const query = new URLSearchParams();
     if (opts?.marketId) query.set('market_id', opts.marketId);
     if (opts?.eventId) query.set('event_id', opts.eventId);
@@ -93,11 +105,11 @@ export class OrdersApi {
       const text = await res.text().catch(() => res.statusText);
       throw new Error(`Failed to cancel all orders: ${text}`);
     }
-    return res.json() as Promise<{ cancelled_count: number }>;
+    return res.json() as Promise<CancelAllOrdersResponse>;
   }
 
   /** Place multiple orders in a single batch. All orders must belong to the same market. */
-  async batchPlace(marketId: string, orders: PlaceOrderParams[]): Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }> {
+  async batchPlace(marketId: string, orders: PlaceOrderParams[]): Promise<{ results: BatchPlaceResult[] }> {
     const body = {
       market_id: marketId,
       orders: orders.map(p => {
@@ -125,12 +137,12 @@ export class OrdersApi {
       const text = await res.text().catch(() => res.statusText);
       throw new Error(`Failed to batch place orders: ${text}`);
     }
-    return res.json() as Promise<{ results: Array<{ index: number; order_id?: string; status: string; error?: string }> }>;
+    return res.json() as Promise<{ results: BatchPlaceResult[] }>;
   }
 
   /** Cancel multiple orders in a single batch. All orders must belong to the same market.
    *  Supports cancellation by order_ids and/or client_order_ids. */
-  async batchCancel(marketId: string, orderIds: string[], clientOrderIds?: string[]): Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }> {
+  async batchCancel(marketId: string, orderIds: string[], clientOrderIds?: string[]): Promise<{ results: BatchCancelResult[] }> {
     const body: Record<string, unknown> = {
       market_id: marketId,
       order_ids: orderIds,
@@ -148,7 +160,7 @@ export class OrdersApi {
       const text = await res.text().catch(() => res.statusText);
       throw new Error(`Failed to batch cancel orders: ${text}`);
     }
-    return res.json() as Promise<{ results: Array<{ order_id: string; status: string; error?: string }> }>;
+    return res.json() as Promise<{ results: BatchCancelResult[] }>;
   }
 
   async getOpen(userPubkey: string, outcomeId?: string): Promise<Order[]> {
