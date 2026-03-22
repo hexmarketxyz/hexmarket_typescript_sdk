@@ -68,3 +68,8 @@ export interface BatchCancelResult {
   status: 'cancelled' | 'failed';
   error?: string;
 }
+
+export interface BatchUpdateResponse {
+  cancel_results: BatchCancelResult[];
+  place_results: BatchPlaceResult[];
+}

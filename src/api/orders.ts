@@ -6,6 +6,7 @@ import {
   CancelAllOrdersResponse,
   BatchPlaceResult,
   BatchCancelResult,
+  BatchUpdateResponse,
 } from '../types/order';
 
 export class OrdersApi {
@@ -165,6 +166,48 @@ export class OrdersApi {
       throw new Error(`Failed to batch cancel orders: ${text}`);
     }
     return res.json() as Promise<{ results: BatchCancelResult[] }>;
+  }
+
+  /** Batch update: cancel orders then place new orders in a single request. All must belong to the same market. */
+  async batchUpdate(
+    marketId: string,
+    cancelOrderIds: string[],
+    placeOrders: PlaceOrderParams[],
+    cancelClientOrderIds?: string[],
+  ): Promise<BatchUpdateResponse> {
+    const body: Record<string, unknown> = {
+      market_id: marketId,
+      cancel_order_ids: cancelOrderIds,
+      place_orders: placeOrders.map(p => {
+        const o: Record<string, unknown> = {
+          outcome_id: p.outcomeId,
+          side: p.side,
+          order_type: p.orderType,
+          time_in_force: p.timeInForce,
+          price: p.price,
+          quantity: p.quantity,
+          nonce: p.nonce,
+          signature: p.signature,
+        };
+        if (p.clientOrderId) o.client_order_id = p.clientOrderId;
+        if (p.sessionPubkey) o.session_pubkey = p.sessionPubkey;
+        return o;
+      }),
+    };
+    if (cancelClientOrderIds?.length) {
+      body.cancel_client_order_ids = cancelClientOrderIds;
+    }
+
+    const res = await fetch(`${this.baseUrl}/api/v1/orders/batch`, {
+      method: 'PUT',
+      headers: this.headers(true),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Failed to batch update orders: ${text}`);
+    }
+    return res.json() as Promise<BatchUpdateResponse>;
   }
 
   async getOpen(userPubkey: string, outcomeId?: string): Promise<Order[]> {
