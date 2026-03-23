@@ -96,6 +96,10 @@ export interface HexEvent {
 /** A market with its nested outcomes. */
 export interface MarketDetail extends Market {
   outcomes: Outcome[];
+  /** Market probability (first outcome's merged best ask), 0-1 */
+  probability?: number;
+  /** Merged best-ask per outcome: { outcomeId: price } */
+  bestAsks?: Record<string, number>;
 }
 
 export interface EventListItem extends HexEvent {
