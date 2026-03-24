@@ -100,6 +100,8 @@ export interface MarketDetail extends Market {
   probability?: number;
   /** Merged best-ask per outcome: { outcomeId: price } */
   bestAsks?: Record<string, number>;
+  /** Merged best-bid per outcome: { outcomeId: price } */
+  bestBids?: Record<string, number>;
 }
 
 export interface EventListItem extends HexEvent {
