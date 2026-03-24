@@ -34,6 +34,8 @@ export interface PlaceOrderParams {
   clientOrderId?: string;
   /** Session key public key. When present, signature is verified against the session key. */
   sessionPubkey?: string;
+  /** For market buy: max USDC amount to spend (dollars). Backend uses this for balance check. */
+  amount?: number;
 }
 
 export interface PlaceOrderResponse {

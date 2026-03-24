@@ -44,6 +44,9 @@ export class OrdersApi {
     if (params.sessionPubkey) {
       body.session_pubkey = params.sessionPubkey;
     }
+    if (params.amount != null) {
+      body.amount = params.amount;
+    }
 
     const res = await fetch(`${this.baseUrl}/api/v1/orders`, {
       method: 'POST',
