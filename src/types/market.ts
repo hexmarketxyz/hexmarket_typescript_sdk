@@ -62,6 +62,7 @@ export interface Tag {
   parentId?: string;
   sortOrder: number;
   iconUrl?: string;
+  showInNav?: boolean;
   createdAt: string;
 }
 
