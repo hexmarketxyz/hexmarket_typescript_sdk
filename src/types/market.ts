@@ -92,6 +92,8 @@ export interface HexEvent {
   createdAt: string;
   resolvedAt?: string;
   isArchived: boolean;
+  /** How to sort markets: 'probability_desc' (default) or 'sort_order' */
+  sortBy?: string;
 }
 
 /** A market with its nested outcomes. */
