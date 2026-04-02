@@ -98,6 +98,8 @@ export interface HexEvent {
   seriesSortOrder?: number;
   /** Page layout: 'default', 'price_up_down', etc. */
   displayStyle?: string;
+  /** Custom metadata JSON */
+  metadata?: Record<string, unknown>;
 }
 
 /** A series groups related events (e.g. BTC price predictions, Fed rate decisions). */
