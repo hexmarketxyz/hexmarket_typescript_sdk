@@ -96,6 +96,8 @@ export interface HexEvent {
   sortBy?: string;
   seriesId?: string;
   seriesSortOrder?: number;
+  /** Page layout: 'default', 'price_up_down', etc. */
+  displayStyle?: string;
 }
 
 /** A series groups related events (e.g. BTC price predictions, Fed rate decisions). */
@@ -109,6 +111,18 @@ export interface EventSeries {
   imageUrl?: string;
   sortOrder: number;
   createdAt: string;
+  displayStyle?: string;
+}
+
+/** A sibling event in the same series (compact, for navigation). */
+export interface SeriesSibling {
+  id: string;
+  slug: string;
+  title: string;
+  titleTranslations?: Record<string, string>;
+  closeTime: string;
+  status: string;
+  isCurrent: boolean;
 }
 
 /** A market with its nested outcomes. */
