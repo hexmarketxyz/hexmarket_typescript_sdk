@@ -94,6 +94,21 @@ export interface HexEvent {
   isArchived: boolean;
   /** How to sort markets: 'probability_desc' (default) or 'sort_order' */
   sortBy?: string;
+  seriesId?: string;
+  seriesSortOrder?: number;
+}
+
+/** A series groups related events (e.g. BTC price predictions, Fed rate decisions). */
+export interface EventSeries {
+  id: string;
+  slug: string;
+  title: string;
+  titleTranslations?: Record<string, string>;
+  description?: string;
+  iconUrl?: string;
+  imageUrl?: string;
+  sortOrder: number;
+  createdAt: string;
 }
 
 /** A market with its nested outcomes. */
