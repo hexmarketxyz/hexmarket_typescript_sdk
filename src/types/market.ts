@@ -42,6 +42,8 @@ export interface Market {
   startTime?: string;
   closeTime?: string;
   resolutionTime?: string;
+  eventStartTime?: string;
+  eventEndTime?: string;
   createdAt: string;
   resolvedAt?: string;
   sortOrder: number;
